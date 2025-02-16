@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kimi2Gether</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #141414;
+            color: white;
+            text-align: center;
+        }
+
+        h1 {
+            color: #E50914;
+        }
+
+        video {
+            width: 80%;
+            max-width: 800px;
+            border: 3px solid #E50914;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎬 Kimi2Gether - Mira Videos con Amigos 🎬</h1>
+    <video id="videoPlayer" controls>
+        <source src="video.mp4" type="video/mp4">
+        Tu navegador no soporta el video.
+    </video>
+
+    <script>
+        const socket = io();
+        const video = document.getElementById("videoPlayer");
+
+        let isSeeking = false;
+
+        socket.on("syncVideo", (state) => {
+            video.currentTime = state.currentTime;
+            if (state.isPlaying) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        });
+
+        video.addEventListener("play", () => {
+            socket.emit("play", video.currentTime);
+        });
+
+        video.addEventListener("pause", () => {
+            socket.emit("pause", video.currentTime);
+        });
+
+        video.addEventListener("seeking", () => {
+            isSeeking = true;
+            socket.emit("seek", video.currentTime);
+        });
+
+        socket.on("play", (time) => {
+            video.currentTime = time;
+            video.play();
+        });
+
+        socket.on("pause", (time) => {
+            video.currentTime = time;
+            video.pause();
+        });
+
+        socket.on("seek", (time) => {
+            if (!isSeeking) {
+                video.currentTime = time;
+            }
+            isSeeking = false;
+        });
+
+    </script>
+
+</body>
+</html>
